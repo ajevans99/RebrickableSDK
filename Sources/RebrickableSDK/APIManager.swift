@@ -3,6 +3,12 @@ import Combine
 
 final class APIManager {
     private let apiKey: String
+
+    private let decoder: JSONDecoder = {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return decoder
+    }()
     
     init(apiKey: String) {
         self.apiKey = apiKey
@@ -32,7 +38,7 @@ extension APIManager {
     func getItem<T: Codable>(with url: URL) -> AnyPublisher<T, LegoError> {
         makeRequest(to: url, withHttpMethod: .get)
             .map { $0.data }
-            .decode(type: T.self, decoder: JSONDecoder())
+            .decode(type: T.self, decoder: decoder)
             .mapToLegoError()
             .eraseToAnyPublisher()
     }
@@ -47,7 +53,7 @@ extension APIManager {
     public func request<T: Codable & Hashable>(to url: URL, httpBody parameters: [String: String] = [:], withHttpMethod httpMethod: HttpMethod) -> AnyPublisher<T, LegoError> {
     makeRequest(to: Endpoint.tokenUrl, httpBody: parameters, withHttpMethod: httpMethod)
         .map { $0.data }
-        .decode(type: T.self, decoder: JSONDecoder())
+        .decode(type: T.self, decoder: decoder)
         .mapToLegoError()
         .eraseToAnyPublisher()
     }
